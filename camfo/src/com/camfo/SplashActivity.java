@@ -19,6 +19,9 @@ public class SplashActivity extends Activity {
 
 	private static int SPLASH_TIME_OUT = 3000;
 	
+	/*
+	 * navigation function redirect to main activity (camera preview activity) 
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

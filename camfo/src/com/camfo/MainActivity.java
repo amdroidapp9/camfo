@@ -59,6 +59,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
 	Context context;
 
+	// camera by default size 
 	private static final int PICTURE_SIZE_MAX_WIDTH = 1280;
 	private static final int PREVIEW_SIZE_MAX_WIDTH = 640;
 
@@ -92,6 +93,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		// Getting width and height of screen
 		Display display = getWindowManager().getDefaultDisplay();
 		Point size = new Point();
 		display.getSize(size);
@@ -132,11 +134,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
 		// Log.w("", height + " - " + width);
 
+		// create blank bitmap for camera crop display
 		int w = width, h = (width / 3) * 4;
 		Bitmap.Config conf = Bitmap.Config.ARGB_8888; 
 		Bitmap bmp = Bitmap.createBitmap(w, h, conf); 
 		cropImageView.setImageBitmap(bmp);
 		
+		/*
+		 * set scale animation to crop layout
+		 */
 		cropImageView.startAnimation(AnimationUtils.loadAnimation(context, R.anim.scale));
 		
 
@@ -147,6 +153,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
 		// cropImageView.setVisibility(View.GONE);
 
+		/*
+		 * take camera preview picture
+		 */
 		btnCapture.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -159,6 +168,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 					// Log.w("Size is", rect.left + " : " + rect.top + " : "
 					// + rect.right + " : " + rect.bottom);
 
+					/*
+					 * set red color of crop area
+					 */
 					CropOverlayView.mCornerPaint = PaintUtil
 							.newCornerPaint1(context);
 					cropImageView.mCropOverlayView.invalidate();
@@ -197,6 +209,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 			}
 		});
 
+		/*
+		 * function is removed
+		 */
 		btnFlash.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -221,6 +236,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 			}
 		});
 
+		/*
+		 * function is removed
+		 */
 		btnAutoFocus.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -274,6 +292,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 		// }
 		// });
 
+		/*
+		 * function close application
+		 */
 		btnCancel.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -309,10 +330,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 	// }
 	// }
 
+	
 	@Override
 	public void onResume() {
 		super.onResume();
 
+		/*
+		 * start camera preview
+		 */
 		try {
 			camera = Camera.open(cameraId);
 		} catch (Exception exception) {
@@ -329,7 +354,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 	@Override
 	public void onPause() {
 		super.onPause();
-
+		/*
+		 * stop camera preview
+		 */
 		stopCameraPreview();
 		camera.release();
 	}
@@ -344,15 +371,23 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 		try {
 			camera.setPreviewDisplay(surfaceHolder);
 			Camera.Parameters p = camera.getParameters();
+			
+			/*
+			 * set flash to camera preview
+			 */
 			if (context.getPackageManager().hasSystemFeature(
-					PackageManager.FEATURE_CAMERA_FLASH)) {
+					PackageManager.FEATURE_CAMERA_FLASH)) { // check features is available
 				if (isFlash)
 					p.setFlashMode(Parameters.FLASH_MODE_AUTO);
 				else
 					p.setFlashMode(Parameters.FLASH_MODE_OFF);
 			}
-			if (Integer.parseInt(Build.VERSION.SDK) >= 14) {
-				if (context.getPackageManager().hasSystemFeature(
+			
+			/*
+			 * set auto focus to camera preview
+			 */
+			if (Integer.parseInt(Build.VERSION.SDK) >= 14) { 
+				if (context.getPackageManager().hasSystemFeature( // check features is available
 						PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
 					if (isAutoFocus) {
 						p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
@@ -536,6 +571,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 		@Override
 		public void onPictureTaken(byte[] data, Camera camera) {
 
+			// create bitmap of capture camera preview
 			Bitmap cameraBitmap = BitmapFactory.decodeByteArray(data, 0,
 					data.length);
 
@@ -546,13 +582,16 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 					Bitmap.Config.ARGB_8888);
 
 			Canvas canvas = new Canvas(newImage);
-
+			// draw bitmap on canvas
 			canvas.drawBitmap(cameraBitmap, 0f, 0f, null);
 
 			// Drawable drawable = getResources().getDrawable(R.drawable.icon);
 			// drawable.setBounds(20, 20, 260, 160);
 			// drawable.draw(canvas);
 
+			/*
+			 * save temporary file in camfo folder
+			 */
 			File storagePath = new File(
 					Environment.getExternalStorageDirectory() + "/camfo/");
 			storagePath.mkdirs();
@@ -571,6 +610,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 				Log.d("In Saving File", e + "");
 			}
 
+			/*
+			 * getting temporary file
+			 */
 			File imgFile = new File(Environment.getExternalStorageDirectory()
 					+ "/camfo/temp.jpeg");
 			if (imgFile.exists()) {
@@ -583,6 +625,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
 				// 720 540
 
+				// crop temporary file by crop rectangle area
 				Bitmap scaledBitmap = Bitmap.createScaledBitmap(myBitmap,
 						(width / 3) * 4, width, true);
 
@@ -612,6 +655,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 				// cropImageView.setVisibility(View.GONE);
 			}
 
+			// save cropped image in database
 			File finalImage = new File(
 					Environment.getExternalStorageDirectory() + "/camfo/");
 			finalImage.mkdirs();
@@ -622,6 +666,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
 			File file = new File(storagePath, ts + ".jpeg");
 
+			// save last image path in preferences
 			pref.edit().putString("lastImage", file.getAbsolutePath()).commit();
 
 			try {
@@ -646,6 +691,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 			CropOverlayView.mCornerPaint = PaintUtil.newCornerPaint(context);
 			cropImageView.mCropOverlayView.invalidate();
 
+			// set recent image
 			setRecentImage();
 
 			newImage.recycle();
@@ -659,6 +705,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 		}
 	};
 
+	/*
+	 * diaplay last recent image in bottom bar
+	 */
 	private void setRecentImage() {
 		if (pref.getString("lastImage", "").length() > 0) {
 			File imgFile = new File(pref.getString("lastImage", ""));
